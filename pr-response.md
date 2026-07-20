@@ -32,9 +32,11 @@
 **Engagement with reviewer's point:**
 
 ## Comment 6 — Rebase
-**What conflicted:**
-**How I resolved it:**
-**How I verified no conflict remains:**
+**What conflicted:** Rebased `feature/watchlist` onto `main` (`git rebase main`), replaying 6 commits over main's int→UUID migration. The single content conflict was in `models.py`: main's UUID migration had removed the `WatchlistEntry` class, while my dedup commit tried to edit it. `app.py` (watchlist blueprint registration) and `services/collection_service.py` (the `db.session.get` switch) both replayed cleanly.
+
+**How I resolved it:** Re-added the `WatchlistEntry` class on top of main's UUID models, changing `film_id` from `db.Integer` to `db.String(36)` so its foreign key matches the migrated `Film.id` (UUID). Kept the dedup `UniqueConstraint` from Comment 2. Then updated the remaining integer-ID assumptions "accordingly": the `add_to_watchlist` docstring (`film_id (int)` → `film_id (str): UUID`), the route's request-body doc (`<int>` → `"<uuid>"`), and the test's fake ID (`99999` → a UUID string, matching `test_collection.py`).
+
+**How I verified no conflict remains:** Searched the tree for conflict markers (none). App boots and registers the watchlist blueprint (`/watchlist/<user_id>`, `/watchlist/<user_id>/add`). Behavioral check with a real UUID film confirmed `add_to_watchlist` persists `entry.film_id == film.id`, and dedup still raises `AlreadyInWatchlistError`. Full suite green (`pytest tests/ -v` → 5 passed). (Separately, verification surfaced a pre-existing bug — `get_watchlist()` references a `WatchlistEntry.film` relationship that was never defined — which I'll fix under Comment 5, since that comment concerns `get_watchlist` ordering.)
 
 ## PR Description
 
