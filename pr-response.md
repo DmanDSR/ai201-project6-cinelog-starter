@@ -52,6 +52,14 @@ All AI-assisted changes were reviewed and run locally before committing; commits
 
 **How I verified no conflict remains:** Searched the tree for conflict markers (none). App boots and registers the watchlist blueprint (`/watchlist/<user_id>`, `/watchlist/<user_id>/add`). Behavioral check with a real UUID film confirmed `add_to_watchlist` persists `entry.film_id == film.id`, and dedup still raises `AlreadyInWatchlistError`. Full suite green (`pytest tests/ -v` → 5 passed). (Separately, verification surfaced a pre-existing bug — `get_watchlist()` references a `WatchlistEntry.film` relationship that was never defined — which I'll fix under Comment 5, since that comment concerns `get_watchlist` ordering.)
 
+## Commit History
+
+Final `git log --oneline` for the feature branch (10 commits, all Conventional Commits, no merge commits):
+
+![git log --oneline of the feature/watchlist branch showing 10 conventional commits](docs/git-history.png)
+
+**Final check:** I ran this history past an AI reviewer with the prompt *"Do these commit messages follow conventional commit format? Are any messages bundling multiple logical changes that should be separate commits?"* It confirmed all messages use valid Conventional Commit types and flagged one commit that bundled a `feat` (sort) with a `fix` (relationship). I verified that against the Conventional Commits 1.0.0 spec myself and agreed, so I split it into `fix: add missing WatchlistEntry relationship for get_watchlist` and `feat: sort watchlist by date added` (visible above). No merge commits are present.
+
 ## PR Description
 
 Adds a watchlist feature so users can save films they want to watch. Includes a new `WatchlistEntry` model, service functions (`add_to_watchlist`, `get_watchlist`), REST endpoints, and deduplication (service check + DB unique constraint).
