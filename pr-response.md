@@ -1,7 +1,17 @@
 # PR Response Doc — CineLog Watchlist Feature
 
 ## AI Usage
-<!-- Fill in at the end — how you used AI tools during this project -->
+
+I used Claude Code (Anthropic) as a pair-programming assistant throughout this project. How it was used, by area:
+
+- **Environment setup:** diagnosed a `ModuleNotFoundError: flask` — the venv was active but empty and `pip` was resolving to a global Python; fixed by installing `requirements.txt` with the venv's own interpreter. Also verified the app boots and the test suite runs.
+- **Reading the review:** the six review comments live on PR #1 of the upstream repo (not the fork). I used the GitHub REST API to pull the inline comments (Files changed) and the general Conversation-tab comments and mapped them to the `pr-response.md` scaffold.
+- **Working the comments one at a time:** for each comment I had the AI read the relevant existing code first (e.g. `add_to_collection`, `test_collection.py`) so the change followed the project's established conventions rather than inventing new ones — `verb_to_noun` naming (Comment 1), the three-layer dedup pattern of service check + `UniqueConstraint` + route 409 (Comment 2), the fixture/assertion structure for tests (Comments 3 and 5).
+- **The rebase (Comment 6):** used the AI to map the divergence and cut a backup branch before rewriting history, then resolve the `models.py` conflict (re-adding `WatchlistEntry` with a UUID `film_id`) and update the remaining integer-ID assumptions.
+- **Verification:** every code change was checked by running `pytest tests/ -v` and, for behavior not covered by tests, by exercising the service against an in-memory DB. This is how the pre-existing `get_watchlist` relationship bug was caught (fixed under Comment 5).
+- **The judgment calls (Comments 4 and 5):** the AI helped me articulate and pressure-test my positions, but the decisions — defending `public=True` with mitigations, and agreeing to date-added ordering — are mine. I directed the choice on the sort-order question explicitly.
+
+All AI-assisted changes were reviewed and run locally before committing; commits are grouped one-per-comment with descriptive messages.
 
 ## Comment 1 — Rename
 **What I did:** Renamed `save_to_watchlist()` to `add_to_watchlist()` in `services/watchlist_service.py` to follow the project's `verb_to_noun` naming convention (matching `add_to_collection()` in the collection service). Updated the one call site in `routes/watchlist/watchlist.py` — both the import statement and the invocation inside the `/add` endpoint.
