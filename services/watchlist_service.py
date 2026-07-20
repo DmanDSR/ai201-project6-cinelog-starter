@@ -54,14 +54,16 @@ def get_watchlist(user_id):
     Args:
         user_id (str): UUID of the user.
 
+    Films are sorted by date added (newest first), matching get_collection()
+    so both lists share one ordering model. See PR response, Comment 5.
+
     Returns:
         list[dict]: List of film dicts with watchlist metadata attached.
     """
     entries = (
         WatchlistEntry.query
         .filter_by(user_id=user_id)
-        .join(Film)
-        .order_by(Film.title.asc())
+        .order_by(WatchlistEntry.date_added.desc())
         .all()
     )
 
