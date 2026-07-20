@@ -20,9 +20,11 @@
 **How I verified:** Ran `pytest tests/test_watchlist.py -v` — 1 passed. Full suite also green (5 passed).
 
 ## Comment 4 — Default visibility
-**My position:**
-**Reasoning:**
-**Tradeoff acknowledged:**
+**My position:** Keep `public=True` as the default for new watchlist entries. This is an intentional decision, not an inherited default.
+
+**Reasoning:** CineLog is a social film-tracking network, and the watchlist is fundamentally a *discovery and social* surface — it answers "what does this person plan to watch?" The behavior I'm optimizing for is frictionless participation in that social graph: a new user who saves a film should immediately contribute to their friends' discovery feeds without first having to hunt for a privacy toggle. Public-by-default is what makes the network effect work — the product gets more valuable as more watchlist activity is visible, recommendations improve, and users can see and discuss what people they follow want to watch. Requiring an opt-in to public would leave most lists private (defaults are sticky), which would quietly gut the social feature this PR exists to build. The `public` field being per-entry also means users retain granular control — the default is a starting point, not a lock-in.
+
+**Tradeoff acknowledged:** The real cost is privacy: a public default means a user who *assumes* their watchlist is private can unintentionally expose their viewing intentions (which can be sensitive — health, religion, sexuality can all be inferred from film choices). The more conservative alternative, `public=False` (privacy-by-default), aligns with data-minimization principles and GDPR's "privacy by design," and eliminates the accidental-exposure risk entirely; its cost is a colder start for the social features and an extra step for the majority of users who *do* want to share. I'm accepting the privacy tradeoff, but it's contingent on three mitigations that should ship alongside this default: (1) the visibility state must be clearly shown in the UI at creation time so it's never a surprise, (2) an easy per-entry public/private toggle, and (3) a first-run prompt the first time a user creates a watchlist so the default is a conscious choice. If we can't commit to at least (1) and (2), I'd switch the default to `public=False`.
 
 ## Comment 5 — Sort order
 **My position:**
@@ -35,3 +37,7 @@
 **How I verified no conflict remains:**
 
 ## PR Description
+
+Adds a watchlist feature so users can save films they want to watch. Includes a new `WatchlistEntry` model, service functions (`add_to_watchlist`, `get_watchlist`), REST endpoints, and deduplication (service check + DB unique constraint).
+
+**Default visibility decision:** New watchlist entries default to `public=True`. This is intentional: CineLog is a social film-tracking network and the watchlist is a discovery surface, so a public default lets users participate in the social graph without friction and powers friend-based discovery. The tradeoff is privacy — a public default risks users unintentionally exposing their viewing intentions — which we accept only alongside a clearly-visible visibility state in the UI, an easy per-entry public/private toggle, and a first-run prompt. (Full reasoning in "Comment 4" above.)
