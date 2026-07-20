@@ -16,8 +16,8 @@
 **How I verified:** Ran a behavioral check against an in-memory DB: adding the same film twice raised `AlreadyInWatchlistError` on the second call and left exactly one entry in the table; a nonexistent film still raised `FilmNotFoundError`. The existing test suite continues to pass (4 passed).
 
 ## Comment 3 — Missing test
-**What I did:**
-**How I verified:**
+**What I did:** Created `tests/test_watchlist.py`, mirroring the fixture and assertion structure of `test_collection.py`. Added `test_add_to_watchlist_nonexistent_film_raises` — the direct equivalent of `test_add_to_collection_nonexistent_film_raises` — which asserts that calling `add_to_watchlist()` with a film_id that isn't in the database raises `FilmNotFoundError` (rather than a raw DB integrity error). Reused the same `app`, `sample_user`, and `sample_film` fixtures (in-memory SQLite, created/dropped per test). One adaptation: film IDs are integers on this branch, so the fake ID is `99999` instead of the collection test's UUID string.
+**How I verified:** Ran `pytest tests/test_watchlist.py -v` — 1 passed. Full suite also green (5 passed).
 
 ## Comment 4 — Default visibility
 **My position:**
